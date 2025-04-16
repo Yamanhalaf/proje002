@@ -41,6 +41,16 @@
       text-align: left;
       max-width: 200px;
     }
+    #levelDisplay {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: lime;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 2;
+    }
     #gameArea {
       position: relative;
       width: 300px;
@@ -118,6 +128,7 @@
 <div id="gameArea">
   <div class="sphere player" id="player"></div>
   <div id="goldCount">Altın: 0</div>
+  <div id="levelDisplay">Seviye: 1</div>
 </div>
 
 <!-- Yön Butonları -->
@@ -135,6 +146,7 @@
   const goldCountDisplay = document.getElementById('goldCount');
   const playerNameInput = document.getElementById('playerName');
   const scoreList = document.getElementById('scoreList');
+  const levelDisplay = document.getElementById('levelDisplay');
 
   let playerX = 135;
   let moveLeft = false;
@@ -161,8 +173,17 @@
     player.style.left = playerX + "px";
 
     score = 0;
+    levelDisplay.textContent = "Seviye: 1";
     moveInterval = setInterval(updatePlayerPosition, 10);
     gameInterval = setInterval(createSphere, 800);
+  }
+
+  function updateLevel() {
+    let level = 1;
+    if (score >= 60) level = 4;
+    else if (score >= 40) level = 3;
+    else if (score >= 20) level = 2;
+    levelDisplay.textContent = "Seviye: " + level;
   }
 
   function updatePlayerPosition() {
@@ -184,15 +205,8 @@
 
   function moveSphere(sphere, isBonus) {
     let y = -30;
-
-    // 🔥 Zorluk seviyesine göre hız ayarla
-    let speed = 3;
-    if (score >= 60) speed = 7;
-    else if (score >= 40) speed = 6;
-    else if (score >= 20) speed = 5;
-
     const interval = setInterval(() => {
-      y += speed;
+      y += 3;
       sphere.style.top = y + "px";
 
       const sphereRect = sphere.getBoundingClientRect();
@@ -217,7 +231,10 @@
       }
 
       if (y > 500) {
-        if (!isBonus) score++;
+        if (!isBonus) {
+          score++;
+          updateLevel();
+        }
         sphere.remove();
         clearInterval(interval);
       }
