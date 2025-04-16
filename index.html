@@ -1,1 +1,279 @@
-# proje002
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prone002</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #111;
+      overflow: hidden;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    #startScreen, #gameOverScreen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 3;
+    }
+    #scoreboard {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid cyan;
+      border-radius: 10px;
+      padding: 10px;
+      color: #0ff;
+      font-size: 14px;
+      text-align: left;
+      max-width: 200px;
+    }
+    #gameArea {
+      position: relative;
+      width: 300px;
+      height: 500px;
+      margin: 50px auto 10px auto;
+      background: #333;
+      border: 5px solid cyan;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    .sphere {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+    .player {
+      bottom: 20px;
+      left: 135px;
+    }
+    .enemy {
+      background: gray;
+    }
+    .bonus {
+      background: gold;
+    }
+    #goldCount {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      color: gold;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    #buttons {
+      margin-top: 10px;
+      display: none;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Giriş Ekranı -->
+<div id="startScreen">
+  <h1>🚗 Prone002</h1>
+  <p>Topları topla, engellerden kaç!</p>
+  <input type="text" id="playerName" placeholder="İsminizi girin" />
+  <button onclick="startGame()">Oyuna Başla</button>
+  <button onclick="window.location.href='magaza001.html'">Mağazaya Git</button>
+  <div id="scoreboard">
+    <strong>En Yüksek Skorlar:</strong>
+    <ul id="scoreList"></ul>
+  </div>
+</div>
+
+<!-- Oyun Bitti Ekranı -->
+<div id="gameOverScreen" style="display: none;">
+  <h2>Oyun Bitti! 🛑</h2>
+  <button onclick="restartGame()">Yeniden Başla</button>
+</div>
+
+<!-- Oyun Alanı -->
+<div id="gameArea">
+  <div class="sphere player" id="player"></div>
+  <div id="goldCount">Altın: 0</div>
+</div>
+
+<!-- Yön Butonları -->
+<div id="buttons">
+  <button id="leftBtn">⬅️</button>
+  <button id="rightBtn">➡️</button>
+</div>
+
+<script>
+  const startScreen = document.getElementById('startScreen');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const gameArea = document.getElementById('gameArea');
+  const buttons = document.getElementById('buttons');
+  const player = document.getElementById('player');
+  const goldCountDisplay = document.getElementById('goldCount');
+  const playerNameInput = document.getElementById('playerName');
+  const scoreList = document.getElementById('scoreList');
+
+  let playerX = 135;
+  let moveLeft = false;
+  let moveRight = false;
+  let gameInterval;
+  let moveInterval;
+  let totalGold = parseInt(localStorage.getItem("altinToplam")) || 0;
+  let score = 0;
+  goldCountDisplay.textContent = "Altın: " + totalGold;
+
+  const seciliRenk = localStorage.getItem("seciliTop") || "red";
+  player.style.background = seciliRenk;
+
+  function startGame() {
+    const playerName = playerNameInput.value.trim() || "İsimsiz";
+    player.setAttribute("data-name", playerName);
+
+    startScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+    gameArea.style.display = "block";
+    buttons.style.display = "block";
+
+    playerX = 135;
+    player.style.left = playerX + "px";
+
+    score = 0;
+    moveInterval = setInterval(updatePlayerPosition, 10);
+    gameInterval = setInterval(createSphere, 800);
+  }
+
+  function updatePlayerPosition() {
+    if (moveLeft && playerX > 0) playerX -= 3;
+    if (moveRight && playerX < 270) playerX += 3;
+    player.style.left = playerX + "px";
+  }
+
+  function createSphere() {
+    const sphere = document.createElement("div");
+    sphere.classList.add("sphere");
+    const isBonus = Math.random() < 0.3;
+    sphere.classList.add(isBonus ? "bonus" : "enemy");
+    sphere.style.left = Math.floor(Math.random() * 10) * 30 + "px";
+    sphere.style.top = "-30px";
+    gameArea.appendChild(sphere);
+    moveSphere(sphere, isBonus);
+  }
+
+  function moveSphere(sphere, isBonus) {
+    let y = -30;
+    const interval = setInterval(() => {
+      y += 3;
+      sphere.style.top = y + "px";
+
+      const sphereRect = sphere.getBoundingClientRect();
+      const playerRect = player.getBoundingClientRect();
+
+      if (
+        sphereRect.top < playerRect.bottom &&
+        sphereRect.bottom > playerRect.top &&
+        sphereRect.left < playerRect.right &&
+        sphereRect.right > playerRect.left
+      ) {
+        clearInterval(interval);
+        sphere.remove();
+
+        if (isBonus) {
+          totalGold++;
+          goldCountDisplay.textContent = "Altın: " + totalGold;
+          localStorage.setItem("altinToplam", totalGold);
+        } else {
+          endGame();
+        }
+      }
+
+      if (y > 500) {
+        if (!isBonus) score++;
+        sphere.remove();
+        clearInterval(interval);
+      }
+    }, 20);
+  }
+
+  function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(moveInterval);
+    buttons.style.display = "none";
+    gameArea.style.display = "none";
+    gameOverScreen.style.display = "flex";
+    saveScore();
+    showHighScores();
+  }
+
+  function saveScore() {
+    const name = player.getAttribute("data-name") || "İsimsiz";
+    let highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
+    highscores.push({ name, score });
+    highscores.sort((a, b) => b.score - a.score);
+    highscores = highscores.slice(0, 10);
+    localStorage.setItem("highscores", JSON.stringify(highscores));
+  }
+
+  function showHighScores() {
+    const highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
+    scoreList.innerHTML = "";
+    highscores.forEach((entry, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${entry.name} - ${entry.score}`;
+      scoreList.appendChild(li);
+    });
+  }
+
+  function restartGame() {
+    location.reload(); // Sayfayı yeniden yükleyip ana menüye döner
+  }
+
+  showHighScores();
+
+  // Dokunmatik ve fare kontrolleri
+  document.getElementById("leftBtn").addEventListener("touchstart", () => moveLeft = true);
+  document.getElementById("leftBtn").addEventListener("touchend", () => moveLeft = false);
+  document.getElementById("rightBtn").addEventListener("touchstart", () => moveRight = true);
+  document.getElementById("rightBtn").addEventListener("touchend", () => moveRight = false);
+
+  document.getElementById("leftBtn").addEventListener("mousedown", () => moveLeft = true);
+  document.getElementById("leftBtn").addEventListener("mouseup", () => moveLeft = false);
+  document.getElementById("rightBtn").addEventListener("mousedown", () => moveRight = true);
+  document.getElementById("rightBtn").addEventListener("mouseup", () => moveRight = false);
+
+  // Klavye yön tuşları (⬅️ ➡️) ile kontrol
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") moveLeft = true;
+    if (e.key === "ArrowRight") moveRight = true;
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowLeft") moveLeft = false;
+    if (e.key === "ArrowRight") moveRight = false;
+  });
+</script>
+
+</body>
+</html>
