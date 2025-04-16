@@ -2,181 +2,264 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Proje002 - Oyun</title>
+  <title>Prone002</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      background: url('galaxy.jpg') no-repeat center center fixed;
-      background-size: cover;
-      margin: 0;
-      padding: 0;
-      font-family: Arial;
-      color: white;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; font-family: sans-serif; text-align: center; overflow: hidden; }
+    #startScreen, #gameOverScreen {
+      position: absolute; width: 100%; height: 100%;
+      background: #000; color: #fff;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 3;
     }
-
+    #scoreboard {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid cyan;
+      border-radius: 10px;
+      padding: 10px;
+      color: #0ff;
+      font-size: 14px;
+      text-align: left;
+      max-width: 200px;
+    }
     #gameArea {
       position: relative;
-      margin: auto;
-      margin-top: 20px;
-      border: 2px solid cyan;
-      border-radius: 20px;
-      width: 90%;
-      max-width: 400px;
-      height: 600px;
-      background-color: rgba(0, 0, 0, 0.5);
-      overflow: hidden;
-    }
-
-    .ball {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: red;
-      position: absolute;
-    }
-
-    #scoreBox, #highscoreBox {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid white;
-      padding: 10px;
+      width: 300px; height: 500px;
+      margin: 50px auto 10px auto;
+      background: #333;
+      border: 5px solid cyan;
       border-radius: 10px;
+      overflow: hidden;
+      display: none;
     }
-
-    #highscoreBox {
-      top: 80px;
-      max-height: 200px;
-      overflow-y: auto;
+    .sphere {
+      position: absolute;
+      width: 30px; height: 30px;
+      border-radius: 50%;
     }
-
-    #highscoreBox ul {
-      padding-left: 20px;
+    .player { bottom: 20px; left: 135px; }
+    .enemy { background: gray; }
+    .bonus { background: gold; }
+    #goldCount {
+      position: absolute;
+      top: 5px; right: 10px;
+      color: gold;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    #buttons { margin-top: 10px; display: none; }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="gameArea">
-    <div id="scoreBox">Puan: <span id="score">0</span></div>
-    <div id="highscoreBox">
-      <strong>Skor Tablosu</strong>
-      <ul id="scoreList"></ul>
-    </div>
+
+<!-- Giriş Ekranı -->
+<div id="startScreen">
+  <h1>🚗 Prone002</h1>
+  <p>Topları topla, engellerden kaç!</p>
+  <input type="text" id="playerName" placeholder="İsminizi girin" />
+  <button onclick="startGame()">Oyuna Başla</button>
+  <button onclick="window.location.href='magaza001.html'">Mağazaya Git</button>
+  <div id="scoreboard">
+    <strong>En Yüksek Skorlar:</strong>
+    <ul id="scoreList"></ul>
   </div>
+</div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    // Firebase SDK'larını yükle
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<!-- Oyun Bitti Ekranı -->
+<div id="gameOverScreen" style="display: none;">
+  <h2>Oyun Bitti! 🛑</h2>
+  <button onclick="restartGame()">Yeniden Başla</button>
+</div>
 
-    // Firebase yapılandırması
-    const firebaseConfig = {
-      apiKey: "AIzaSyAvPrYgpMetg9QGh80RvnSUmVXiAA7b_mA",
-      authDomain: "proje002-81e2e.firebaseapp.com",
-      projectId: "proje002-81e2e",
-      storageBucket: "proje002-81e2e.appspot.com",
-      messagingSenderId: "29702728042",
-      appId: "1:29702728042:web:f3a7e534d58a84a49a5d13",
-      measurementId: "G-786EXKB0QF"
-    };
+<!-- Oyun Alanı -->
+<div id="gameArea">
+  <div class="sphere player" id="player"></div>
+  <div id="goldCount">Altın: 0</div>
+</div>
 
-    // Firebase'i başlat
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
+<!-- Yön Butonları -->
+<div id="buttons">
+  <button id="leftBtn">⬅️</button>
+  <button id="rightBtn">➡️</button>
+</div>
 
-    // HTML elemanları
-    const gameArea = document.getElementById("gameArea");
-    const scoreDisplay = document.getElementById("score");
-    const scoreList = document.getElementById("scoreList");
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    let score = 0;
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvPrYgpMetg9QGh80RvnSUmVXiAA7b_mA",
+    authDomain: "proje002-81e2e.firebaseapp.com",
+    projectId: "proje002-81e2e",
+    storageBucket: "proje002-81e2e.appspot.com",
+    messagingSenderId: "29702728042",
+    appId: "1:29702728042:web:f3a7e534d58a84a49a5d13",
+    measurementId: "G-786EXKB0QF"
+  };
 
-    // Top oluştur
-    function createBall() {
-      const ball = document.createElement("div");
-      ball.classList.add("ball");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-      const x = Math.random() * (gameArea.clientWidth - 40);
-      const y = Math.random() * (gameArea.clientHeight - 40);
-      ball.style.left = `${x}px`;
-      ball.style.top = `${y}px`;
+  const startScreen = document.getElementById('startScreen');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  const gameArea = document.getElementById('gameArea');
+  const buttons = document.getElementById('buttons');
+  const player = document.getElementById('player');
+  const goldCountDisplay = document.getElementById('goldCount');
+  const playerNameInput = document.getElementById('playerName');
+  const scoreList = document.getElementById('scoreList');
 
-      ball.addEventListener("click", () => {
-        score++;
-        scoreDisplay.textContent = score;
-        gameArea.removeChild(ball);
-        createBall();
-      });
+  let playerX = 135;
+  let moveLeft = false;
+  let moveRight = false;
+  let gameInterval;
+  let moveInterval;
+  let totalGold = parseInt(localStorage.getItem("altinToplam")) || 0;
+  let score = 0;
+  goldCountDisplay.textContent = "Altın: " + totalGold;
 
-      gameArea.appendChild(ball);
+  const seciliRenk = localStorage.getItem("seciliTop") || "red";
+  player.style.background = seciliRenk;
 
-      // Top tıklanmazsa oyun biter
-      setTimeout(() => {
-        if (gameArea.contains(ball)) {
-          gameArea.removeChild(ball);
+  function startGame() {
+    const playerName = playerNameInput.value.trim() || "İsimsiz";
+    player.setAttribute("data-name", playerName);
+
+    startScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+    gameArea.style.display = "block";
+    buttons.style.display = "block";
+
+    playerX = 135;
+    player.style.left = playerX + "px";
+
+    score = 0;
+    moveInterval = setInterval(updatePlayerPosition, 10);
+    gameInterval = setInterval(createSphere, 800);
+  }
+
+  function updatePlayerPosition() {
+    if (moveLeft && playerX > 0) playerX -= 3;
+    if (moveRight && playerX < 270) playerX += 3;
+    player.style.left = playerX + "px";
+  }
+
+  function createSphere() {
+    const sphere = document.createElement("div");
+    sphere.classList.add("sphere");
+    const isBonus = Math.random() < 0.3;
+    sphere.classList.add(isBonus ? "bonus" : "enemy");
+    sphere.style.left = Math.floor(Math.random() * 10) * 30 + "px";
+    sphere.style.top = "-30px";
+    gameArea.appendChild(sphere);
+    moveSphere(sphere, isBonus);
+  }
+
+  function moveSphere(sphere, isBonus) {
+    let y = -30;
+    const interval = setInterval(() => {
+      y += 3;
+      sphere.style.top = y + "px";
+
+      const sphereRect = sphere.getBoundingClientRect();
+      const playerRect = player.getBoundingClientRect();
+
+      if (
+        sphereRect.top < playerRect.bottom &&
+        sphereRect.bottom > playerRect.top &&
+        sphereRect.left < playerRect.right &&
+        sphereRect.right > playerRect.left
+      ) {
+        clearInterval(interval);
+        sphere.remove();
+
+        if (isBonus) {
+          totalGold++;
+          goldCountDisplay.textContent = "Altın: " + totalGold;
+          localStorage.setItem("altinToplam", totalGold);
+        } else {
           endGame();
         }
-      }, 2000);
-    }
-
-    // Oyunu bitir
-    async function endGame() {
-      alert("Oyun bitti! Skorunuz: " + score);
-      await saveScore();
-      await showHighScores();
-      score = 0;
-      scoreDisplay.textContent = "0";
-    }
-
-    // Skoru Firebase'e ve localStorage'a kaydet
-    async function saveScore() {
-      const name = prompt("İsminizi girin:", "Oyuncu") || "İsimsiz";
-
-      // Firebase'e kaydet
-      try {
-        await addDoc(collection(db, "scores"), { name, score });
-      } catch (e) {
-        console.error("Firebase'e kaydedilemedi:", e);
       }
 
-      // localStorage'a da kaydet (yedek olarak)
-      let highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
-      highscores.push({ name, score });
-      highscores.sort((a, b) => b.score - a.score);
-      highscores = highscores.slice(0, 10);
-      localStorage.setItem("highscores", JSON.stringify(highscores));
-    }
-
-    // Skorları Firebase'den göster
-    async function showHighScores() {
-      scoreList.innerHTML = "";
-
-      try {
-        const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
-        const querySnapshot = await getDocs(q);
-
-        let i = 1;
-        querySnapshot.forEach((doc) => {
-          const entry = doc.data();
-          const li = document.createElement("li");
-          li.textContent = `${i++}. ${entry.name} - ${entry.score}`;
-          scoreList.appendChild(li);
-        });
-      } catch (e) {
-        console.error("Skorlar alınamadı:", e);
-        scoreList.innerHTML = "<li>Skorlar yüklenemedi</li>";
+      if (y > 500) {
+        if (!isBonus) score++;
+        sphere.remove();
+        clearInterval(interval);
       }
-    }
+    }, 20);
+  }
 
-    // Başlangıçta skorları yükle
+  async function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(moveInterval);
+    buttons.style.display = "none";
+    gameArea.style.display = "none";
+    gameOverScreen.style.display = "flex";
+
+    const name = player.getAttribute("data-name") || "İsimsiz";
+    await addDoc(collection(db, "scores"), { name, score });
+
     showHighScores();
+  }
 
-    // Oyun başlasın
-    createBall();
-  </script>
+  async function showHighScores() {
+    const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
+    const querySnapshot = await getDocs(q);
+    scoreList.innerHTML = "";
+    let index = 1;
+    querySnapshot.forEach((doc) => {
+      const entry = doc.data();
+      const li = document.createElement("li");
+      li.textContent = `${index}. ${entry.name} - ${entry.score}`;
+      scoreList.appendChild(li);
+      index++;
+    });
+  }
+
+  function restartGame() {
+    location.reload();
+  }
+
+  // Dokunmatik ve fare kontrolleri
+  document.getElementById("leftBtn").addEventListener("touchstart", () => moveLeft = true);
+  document.getElementById("leftBtn").addEventListener("touchend", () => moveLeft = false);
+  document.getElementById("rightBtn").addEventListener("touchstart", () => moveRight = true);
+  document.getElementById("rightBtn").addEventListener("touchend", () => moveRight = false);
+
+  document.getElementById("leftBtn").addEventListener("mousedown", () => moveLeft = true);
+  document.getElementById("leftBtn").addEventListener("mouseup", () => moveLeft = false);
+  document.getElementById("rightBtn").addEventListener("mousedown", () => moveRight = true);
+  document.getElementById("rightBtn").addEventListener("mouseup", () => moveRight = false);
+
+  // Klavye yön tuşları
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") moveLeft = true;
+    if (e.key === "ArrowRight") moveRight = true;
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowLeft") moveLeft = false;
+    if (e.key === "ArrowRight") moveRight = false;
+  });
+
+  showHighScores(); // sayfa yüklenince skorları göster
+</script>
+
 </body>
 </html>
