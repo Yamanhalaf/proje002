@@ -2,300 +2,267 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Prone002</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>prone002</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
     body {
-      background: #111;
-      overflow: hidden;
+      margin: 0;
       font-family: sans-serif;
-      text-align: center;
+      background: url('https://i.ibb.co/SNzxvMf/starsbg.jpg') no-repeat center center fixed;
+      background-size: cover;
     }
-    #startScreen, #gameOverScreen {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 3;
-    }
-    #scoreboard {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid cyan;
-      border-radius: 10px;
-      padding: 10px;
-      color: #0ff;
-      font-size: 14px;
-      text-align: left;
-      max-width: 200px;
-    }
-    #levelDisplay {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: lime;
-      font-size: 18px;
-      font-weight: bold;
-      z-index: 2;
-    }
+
     #gameArea {
-      position: relative;
       width: 300px;
       height: 500px;
-      margin: 50px auto 10px auto;
-      background: #333;
-      border: 5px solid cyan;
-      border-radius: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 2px solid cyan;
+      margin: 20px auto;
+      position: relative;
       overflow: hidden;
       display: none;
     }
+
     .sphere {
-      position: absolute;
       width: 30px;
       height: 30px;
       border-radius: 50%;
+      position: absolute;
+      top: 0;
     }
-    .player {
-      bottom: 20px;
+
+    #player {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: red;
+      position: absolute;
+      bottom: 10px;
       left: 135px;
     }
-    .enemy {
-      background: gray;
-    }
-    .bonus {
-      background: gold;
-    }
-    #goldCount {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      color: gold;
+
+    #playerNameInput {
+      padding: 8px;
       font-size: 16px;
-      font-weight: bold;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: none;
     }
+
     #buttons {
-      margin-top: 10px;
+      text-align: center;
+      margin-top: 20px;
       display: none;
     }
+
     button {
       padding: 10px 20px;
-      font-size: 18px;
-      margin: 10px;
-      cursor: pointer;
-    }
-    input[type="text"] {
-      padding: 10px;
+      margin: 5px;
       font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #0ff;
+      color: black;
+      font-weight: bold;
+    }
+
+    #scoreBox, #levelDisplay {
+      position: absolute;
+      top: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #0ff;
+    }
+
+    #scoreBox {
+      right: 10px;
+    }
+
+    #levelDisplay {
+      left: 10px;
+    }
+
+    #startScreen, #gameOverScreen {
+      text-align: center;
+      margin-top: 50px;
+      color: white;
+    }
+
+    #highScores {
       margin-top: 10px;
+      font-size: 14px;
+      color: #0ff;
     }
   </style>
 </head>
 <body>
-
-<!-- Giriş Ekranı -->
-<div id="startScreen">
-  <h1>🚗 Prone002</h1>
-  <p>Topları topla, engellerden kaç!</p>
-  <input type="text" id="playerName" placeholder="İsminizi girin" />
-  <button onclick="startGame()">Oyuna Başla</button>
-  <button onclick="window.location.href='magaza001.html'">Mağazaya Git</button>
-  <div id="scoreboard">
-    <strong>En Yüksek Skorlar:</strong>
-    <ul id="scoreList"></ul>
+  <div id="startScreen">
+    <h1>Prone002</h1>
+    <input type="text" id="playerNameInput" placeholder="İsminizi girin">
+    <br>
+    <button onclick="startGame()">Oyuna Başla</button>
   </div>
-</div>
 
-<!-- Oyun Bitti Ekranı -->
-<div id="gameOverScreen" style="display: none;">
-  <h2>Oyun Bitti! 🛑</h2>
-  <button onclick="restartGame()">Yeniden Başla</button>
-</div>
+  <div id="gameArea">
+    <div id="player"></div>
+    <div id="scoreBox">Skor: 0</div>
+    <div id="levelDisplay">Seviye: 1</div>
+  </div>
 
-<!-- Oyun Alanı -->
-<div id="gameArea">
-  <div class="sphere player" id="player"></div>
-  <div id="goldCount">Altın: 0</div>
-  <div id="levelDisplay">Seviye: 1</div>
-</div>
+  <div id="buttons">
+    <button onclick="goToStore()">Mağaza</button>
+  </div>
 
-<!-- Yön Butonları -->
-<div id="buttons">
-  <button id="leftBtn">⬅️</button>
-  <button id="rightBtn">➡️</button>
-</div>
+  <div id="gameOverScreen" style="display:none; text-align:center; color:white;">
+    <h2>Oyun Bitti!</h2>
+    <p id="finalScore"></p>
+    <button onclick="startGame()">Yeniden Başla</button>
+    <div id="highScores"></div>
+  </div>
 
-<script>
-  const startScreen = document.getElementById('startScreen');
-  const gameOverScreen = document.getElementById('gameOverScreen');
-  const gameArea = document.getElementById('gameArea');
-  const buttons = document.getElementById('buttons');
-  const player = document.getElementById('player');
-  const goldCountDisplay = document.getElementById('goldCount');
-  const playerNameInput = document.getElementById('playerName');
-  const scoreList = document.getElementById('scoreList');
-  const levelDisplay = document.getElementById('levelDisplay');
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const player = document.getElementById("player");
+    const scoreBox = document.getElementById("scoreBox");
+    const finalScore = document.getElementById("finalScore");
+    const highScores = document.getElementById("highScores");
+    const startScreen = document.getElementById("startScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const buttons = document.getElementById("buttons");
 
-  let playerX = 135;
-  let moveLeft = false;
-  let moveRight = false;
-  let gameInterval;
-  let moveInterval;
-  let totalGold = parseInt(localStorage.getItem("altinToplam")) || 0;
-  let score = 0;
-  goldCountDisplay.textContent = "Altın: " + totalGold;
-
-  const seciliRenk = localStorage.getItem("seciliTop") || "red";
-  player.style.background = seciliRenk;
-
-  function startGame() {
-    const playerName = playerNameInput.value.trim() || "İsimsiz";
-    player.setAttribute("data-name", playerName);
-
-    startScreen.style.display = "none";
-    gameOverScreen.style.display = "none";
-    gameArea.style.display = "block";
-    buttons.style.display = "block";
-
-    playerX = 135;
-    player.style.left = playerX + "px";
-
-    score = 0;
-    levelDisplay.textContent = "Seviye: 1";
-    moveInterval = setInterval(updatePlayerPosition, 10);
-    gameInterval = setInterval(createSphere, 800);
-  }
-
-  function updateLevel() {
+    let playerX = 135;
+    let moveInterval;
+    let gameInterval;
+    let score = 0;
     let level = 1;
-    if (score >= 60) level = 4;
-    else if (score >= 40) level = 3;
-    else if (score >= 20) level = 2;
-    levelDisplay.textContent = "Seviye: " + level;
-  }
+    let sphereIntervalTime = 800;
 
-  function updatePlayerPosition() {
-    if (moveLeft && playerX > 0) playerX -= 3;
-    if (moveRight && playerX < 270) playerX += 3;
-    player.style.left = playerX + "px";
-  }
+    function startGame() {
+      const playerName = playerNameInput.value.trim() || "İsimsiz";
+      player.setAttribute("data-name", playerName);
 
-  function createSphere() {
-    const sphere = document.createElement("div");
-    sphere.classList.add("sphere");
-    const isBonus = Math.random() < 0.3;
-    sphere.classList.add(isBonus ? "bonus" : "enemy");
-    sphere.style.left = Math.floor(Math.random() * 10) * 30 + "px";
-    sphere.style.top = "-30px";
-    gameArea.appendChild(sphere);
-    moveSphere(sphere, isBonus);
-  }
+      startScreen.style.display = "none";
+      gameOverScreen.style.display = "none";
+      gameArea.style.display = "block";
+      buttons.style.display = "block";
 
-  function moveSphere(sphere, isBonus) {
-    let y = -30;
-    const interval = setInterval(() => {
-      y += 3;
-      sphere.style.top = y + "px";
+      playerX = 135;
+      player.style.left = playerX + "px";
 
-      const sphereRect = sphere.getBoundingClientRect();
-      const playerRect = player.getBoundingClientRect();
+      score = 0;
+      level = 1;
+      sphereIntervalTime = 800;
 
-      if (
-        sphereRect.top < playerRect.bottom &&
-        sphereRect.bottom > playerRect.top &&
-        sphereRect.left < playerRect.right &&
-        sphereRect.right > playerRect.left
-      ) {
-        clearInterval(interval);
-        sphere.remove();
+      scoreBox.textContent = "Skor: " + score;
+      document.getElementById("levelDisplay").textContent = "Seviye: " + level;
 
-        if (isBonus) {
-          totalGold++;
-          goldCountDisplay.textContent = "Altın: " + totalGold;
-          localStorage.setItem("altinToplam", totalGold);
-        } else {
-          endGame();
+      clearInterval(moveInterval);
+      clearInterval(gameInterval);
+
+      moveInterval = setInterval(updatePlayerPosition, 10);
+      gameInterval = setInterval(createSphere, sphereIntervalTime);
+
+      document.addEventListener("keydown", movePlayer);
+    }
+
+    function movePlayer(e) {
+      if (e.key === "ArrowLeft" && playerX > 0) playerX -= 10;
+      if (e.key === "ArrowRight" && playerX < 270) playerX += 10;
+    }
+
+    function updatePlayerPosition() {
+      player.style.left = playerX + "px";
+    }
+
+    function createSphere() {
+      const sphere = document.createElement("div");
+      sphere.className = "sphere";
+      const isBonus = Math.random() < 0.2;
+      sphere.style.backgroundColor = isBonus ? "yellow" : "gray";
+      const x = Math.floor(Math.random() * 270);
+      sphere.style.left = x + "px";
+      gameArea.appendChild(sphere);
+
+      let y = 0;
+      const interval = setInterval(() => {
+        y += 4;
+        sphere.style.top = y + "px";
+
+        const px = player.offsetLeft;
+        const py = player.offsetTop;
+
+        if (
+          y + 30 > py &&
+          x < px + 30 &&
+          x + 30 > px
+        ) {
+          if (!isBonus) {
+            endGame();
+            clearInterval(interval);
+            return;
+          } else {
+            score += 5;
+            updateLevelAndDifficulty();
+            scoreBox.textContent = "Skor: " + score;
+            sphere.remove();
+            clearInterval(interval);
+            return;
+          }
         }
-      }
 
-      if (y > 500) {
-        if (!isBonus) {
-          score++;
-          updateLevel();
+        if (y > 500) {
+          if (!isBonus) score++;
+          updateLevelAndDifficulty();
+          scoreBox.textContent = "Skor: " + score;
+          sphere.remove();
+          clearInterval(interval);
         }
-        sphere.remove();
-        clearInterval(interval);
+      }, 20);
+    }
+
+    function updateLevelAndDifficulty() {
+      let newLevel = Math.floor(score / 5) + 1;
+      if (newLevel > level) {
+        level = newLevel;
+        document.getElementById("levelDisplay").textContent = "Seviye: " + level;
+
+        clearInterval(gameInterval);
+        sphereIntervalTime = Math.max(300, 800 - (level - 1) * 50);
+        gameInterval = setInterval(createSphere, sphereIntervalTime);
       }
-    }, 20);
-  }
+    }
 
-  function endGame() {
-    clearInterval(gameInterval);
-    clearInterval(moveInterval);
-    buttons.style.display = "none";
-    gameArea.style.display = "none";
-    gameOverScreen.style.display = "flex";
-    saveScore();
-    showHighScores();
-  }
+    function endGame() {
+      clearInterval(moveInterval);
+      clearInterval(gameInterval);
+      document.removeEventListener("keydown", movePlayer);
 
-  function saveScore() {
-    const name = player.getAttribute("data-name") || "İsimsiz";
-    let highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
-    highscores.push({ name, score });
-    highscores.sort((a, b) => b.score - a.score);
-    highscores = highscores.slice(0, 10);
-    localStorage.setItem("highscores", JSON.stringify(highscores));
-  }
+      gameArea.style.display = "none";
+      buttons.style.display = "none";
+      gameOverScreen.style.display = "block";
 
-  function showHighScores() {
-    const highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
-    scoreList.innerHTML = "";
-    highscores.forEach((entry, index) => {
-      const li = document.createElement("li");
-      li.textContent = `${index + 1}. ${entry.name} - ${entry.score}`;
-      scoreList.appendChild(li);
-    });
-  }
+      finalScore.textContent = "Skorunuz: " + score;
 
-  function restartGame() {
-    location.reload();
-  }
+      const playerName = player.getAttribute("data-name");
+      const newEntry = { name: playerName, score: score };
+      const topScores = JSON.parse(localStorage.getItem("highScores") || "[]");
 
-  showHighScores();
+      topScores.push(newEntry);
+      topScores.sort((a, b) => b.score - a.score);
+      const bestTen = topScores.slice(0, 10);
+      localStorage.setItem("highScores", JSON.stringify(bestTen));
 
-  document.getElementById("leftBtn").addEventListener("touchstart", () => moveLeft = true);
-  document.getElementById("leftBtn").addEventListener("touchend", () => moveLeft = false);
-  document.getElementById("rightBtn").addEventListener("touchstart", () => moveRight = true);
-  document.getElementById("rightBtn").addEventListener("touchend", () => moveRight = false);
+      highScores.innerHTML = "<h3>En Yüksek Skorlar</h3>";
+      bestTen.forEach((entry, index) => {
+        highScores.innerHTML += `<p>${index + 1}. ${entry.name} - ${entry.score}</p>`;
+      });
+    }
 
-  document.getElementById("leftBtn").addEventListener("mousedown", () => moveLeft = true);
-  document.getElementById("leftBtn").addEventListener("mouseup", () => moveLeft = false);
-  document.getElementById("rightBtn").addEventListener("mousedown", () => moveRight = true);
-  document.getElementById("rightBtn").addEventListener("mouseup", () => moveRight = false);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") moveLeft = true;
-    if (e.key === "ArrowRight") moveRight = true;
-  });
-
-  document.addEventListener("keyup", (e) => {
-    if (e.key === "ArrowLeft") moveLeft = false;
-    if (e.key === "ArrowRight") moveRight = false;
-  });
-</script>
-
+    function goToStore() {
+      window.location.href = "magaza001.html";
+    }
+  </script>
 </body>
 </html>
