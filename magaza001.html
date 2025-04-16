@@ -11,19 +11,45 @@
       text-align: center;
       padding: 20px;
     }
+    #magaza {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .top-kutu {
+      background-color: #222;
+      padding: 10px;
+      border-radius: 10px;
+      width: 100px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
     .top {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      display: inline-block;
-      margin: 10px;
       border: 2px solid white;
+      margin-bottom: 10px;
     }
     button {
-      margin: 5px;
+      margin-top: 5px;
       padding: 6px 12px;
       font-size: 14px;
       cursor: pointer;
+      width: 90%;
+    }
+    @media (max-width: 500px) {
+      .top-kutu {
+        width: 80px;
+      }
+      .top {
+        width: 40px;
+        height: 40px;
+      }
+      button {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
     }
   </style>
 </head>
@@ -51,6 +77,7 @@
     const magazaDiv = document.getElementById("magaza");
     toplar.forEach(top => {
       const topDiv = document.createElement("div");
+      topDiv.className = "top-kutu";
 
       const topGorunum = document.createElement("div");
       topGorunum.className = "top";
