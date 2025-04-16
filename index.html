@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Oyun</title>
   <style>
     body {
@@ -12,6 +12,7 @@
       background-repeat: repeat;
       font-family: 'Segoe UI', sans-serif;
       color: white;
+      text-align: center;
     }
 
     .oyun-alani {
@@ -96,22 +97,66 @@
 <body>
   <div class="oyun-alani" id="oyunAlani">
     <div class="puan-goster" id="puanGoster">Puan: 0</div>
-    <!-- Top ve oyun içerikleri buraya eklenecek -->
   </div>
 
-  <div style="text-align: center;">
-    <button class="basla-buton" onclick="oyunuBaslat()">Oyuna Başla</button>
-    <button class="yeniden-basla" onclick="oyunuYenidenBaslat()">Yeniden Başla</button>
-  </div>
+  <button class="basla-buton" onclick="oyunuBaslat()">Oyuna Başla</button>
+  <button class="yeniden-basla" onclick="oyunuYenidenBaslat()">Yeniden Başla</button>
 
   <script>
-    // Oyun scriptin buraya gelecek (mevcut top hareketleri, puan sistemi vb.)
+    let puan = 0;
+    let top;
+    const oyunAlani = document.getElementById("oyunAlani");
+    const puanGoster = document.getElementById("puanGoster");
+    let zamanlayici;
+
+    function rastgeleKonum() {
+      const maxX = oyunAlani.clientWidth - 50;
+      const maxY = oyunAlani.clientHeight - 50;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      return { x, y };
+    }
+
+    function topOlustur() {
+      if (top) {
+        top.remove();
+      }
+
+      top = document.createElement("div");
+      top.className = "top";
+      const seciliTopRenk = localStorage.getItem("seciliTop") || "red";
+      top.style.backgroundColor = seciliTopRenk;
+
+      const konum = rastgeleKonum();
+      top.style.left = konum.x + "px";
+      top.style.top = konum.y + "px";
+
+      top.onclick = () => {
+        puan++;
+        puanGoster.textContent = "Puan: " + puan;
+        topOlustur();
+        sifirlaZamanlayici();
+      };
+
+      oyunAlani.appendChild(top);
+    }
+
+    function sifirlaZamanlayici() {
+      clearTimeout(zamanlayici);
+      zamanlayici = setTimeout(() => {
+        alert("Oyun Bitti! Topa zamanında tıklayamadın.\nPuanın: " + puan);
+        top.remove();
+      }, 2000); // 2 saniyede tıklanmazsa oyun biter
+    }
+
     function oyunuBaslat() {
-      alert("Oyun başladı (örnek)!");
+      puan = 0;
+      puanGoster.textContent = "Puan: " + puan;
+      topOlustur();
     }
 
     function oyunuYenidenBaslat() {
-      alert("Oyun yeniden başlatıldı (örnek)!");
+      location.reload();
     }
   </script>
 </body>
