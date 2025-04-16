@@ -184,8 +184,15 @@
 
   function moveSphere(sphere, isBonus) {
     let y = -30;
+
+    // 🔥 Zorluk seviyesine göre hız ayarla
+    let speed = 3;
+    if (score >= 60) speed = 7;
+    else if (score >= 40) speed = 6;
+    else if (score >= 20) speed = 5;
+
     const interval = setInterval(() => {
-      y += 3;
+      y += speed;
       sphere.style.top = y + "px";
 
       const sphereRect = sphere.getBoundingClientRect();
@@ -247,12 +254,11 @@
   }
 
   function restartGame() {
-    location.reload(); // Sayfayı yeniden yükleyip ana menüye döner
+    location.reload();
   }
 
   showHighScores();
 
-  // Dokunmatik ve fare kontrolleri
   document.getElementById("leftBtn").addEventListener("touchstart", () => moveLeft = true);
   document.getElementById("leftBtn").addEventListener("touchend", () => moveLeft = false);
   document.getElementById("rightBtn").addEventListener("touchstart", () => moveRight = true);
@@ -263,7 +269,6 @@
   document.getElementById("rightBtn").addEventListener("mousedown", () => moveRight = true);
   document.getElementById("rightBtn").addEventListener("mouseup", () => moveRight = false);
 
-  // Klavye yön tuşları (⬅️ ➡️) ile kontrol
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") moveLeft = true;
     if (e.key === "ArrowRight") moveRight = true;
