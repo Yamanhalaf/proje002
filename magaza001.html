@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mağaza</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .top {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: inline-block;
+      margin: 10px;
+      border: 2px solid white;
+    }
+    button {
+      margin: 5px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Top Mağazası</h1>
+  <div id="altinGoster"></div>
+  <div id="magaza"></div>
+  <button onclick="anaMenüyeDon()">Ana Menüye Dön</button>
+
+  <script>
+    const toplar = [
+      { renk: "red", fiyat: 0 },
+      { renk: "blue", fiyat: 3 },
+      { renk: "green", fiyat: 5 },
+      { renk: "yellow", fiyat: 7 },
+      { renk: "purple", fiyat: 10 }
+    ];
+
+    const satinAlinanToplar = JSON.parse(localStorage.getItem("satinAlinanToplar") || "[]");
+    let seciliTop = localStorage.getItem("seciliTop") || "red";
+    let altin = parseInt(localStorage.getItem("altinToplam")) || 0;
+
+    document.getElementById("altinGoster").textContent = "Altın: " + altin;
+
+    const magazaDiv = document.getElementById("magaza");
+    toplar.forEach(top => {
+      const topDiv = document.createElement("div");
+
+      const topGorunum = document.createElement("div");
+      topGorunum.className = "top";
+      topGorunum.style.backgroundColor = top.renk;
+
+      const durumYazisi = document.createElement("div");
+
+      const buton = document.createElement("button");
+
+      if (satinAlinanToplar.includes(top.renk)) {
+        // Satın alınmışsa "Seç" butonu
+        buton.textContent = seciliTop === top.renk ? "SEÇİLİ" : "SEÇ";
+        buton.disabled = seciliTop === top.renk;
+        buton.onclick = () => {
+          localStorage.setItem("seciliTop", top.renk);
+          location.reload();
+        };
+        durumYazisi.textContent = "Zaten Satın Alındı";
+      } else {
+        // Satın alınmamışsa "Satın Al" butonu
+        buton.textContent = "Satın Al (" + top.fiyat + " altın)";
+        buton.onclick = () => {
+          if (altin >= top.fiyat) {
+            altin -= top.fiyat;
+            localStorage.setItem("altinToplam", altin);
+            satinAlinanToplar.push(top.renk);
+            localStorage.setItem("satinAlinanToplar", JSON.stringify(satinAlinanToplar));
+            localStorage.setItem("seciliTop", top.renk);
+            location.reload();
+          } else {
+            alert("Yeterli altın yok!");
+          }
+        };
+      }
+
+      topDiv.appendChild(topGorunum);
+      topDiv.appendChild(durumYazisi);
+      topDiv.appendChild(buton);
+      magazaDiv.appendChild(topDiv);
+    });
+
+    function anaMenüyeDon() {
+      window.location.href = "oyun001.html";
+    }
+  </script>
+</body>
+</html>
