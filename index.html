@@ -5,17 +5,33 @@
   <title>Prone002</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #111; font-family: sans-serif; text-align: center; overflow: hidden; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #111;
+      overflow: hidden;
+      font-family: sans-serif;
+      text-align: center;
+    }
     #startScreen, #gameOverScreen {
-      position: absolute; width: 100%; height: 100%;
-      background: #000; color: #fff;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       z-index: 3;
     }
     #scoreboard {
       position: absolute;
-      top: 10px; left: 10px;
+      top: 10px;
+      left: 10px;
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid cyan;
       border-radius: 10px;
@@ -27,7 +43,8 @@
     }
     #gameArea {
       position: relative;
-      width: 300px; height: 500px;
+      width: 300px;
+      height: 500px;
       margin: 50px auto 10px auto;
       background: #333;
       border: 5px solid cyan;
@@ -37,20 +54,32 @@
     }
     .sphere {
       position: absolute;
-      width: 30px; height: 30px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
     }
-    .player { bottom: 20px; left: 135px; }
-    .enemy { background: gray; }
-    .bonus { background: gold; }
+    .player {
+      bottom: 20px;
+      left: 135px;
+    }
+    .enemy {
+      background: gray;
+    }
+    .bonus {
+      background: gold;
+    }
     #goldCount {
       position: absolute;
-      top: 5px; right: 10px;
+      top: 5px;
+      right: 10px;
       color: gold;
       font-size: 16px;
       font-weight: bold;
     }
-    #buttons { margin-top: 10px; display: none; }
+    #buttons {
+      margin-top: 10px;
+      display: none;
+    }
     button {
       padding: 10px 20px;
       font-size: 18px;
@@ -97,24 +126,7 @@
   <button id="rightBtn">➡️</button>
 </div>
 
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAvPrYgpMetg9QGh80RvnSUmVXiAA7b_mA",
-    authDomain: "proje002-81e2e.firebaseapp.com",
-    projectId: "proje002-81e2e",
-    storageBucket: "proje002-81e2e.appspot.com",
-    messagingSenderId: "29702728042",
-    appId: "1:29702728042:web:f3a7e534d58a84a49a5d13",
-    measurementId: "G-786EXKB0QF"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
+<script>
   const startScreen = document.getElementById('startScreen');
   const gameOverScreen = document.getElementById('gameOverScreen');
   const gameArea = document.getElementById('gameArea');
@@ -205,36 +217,40 @@
     }, 20);
   }
 
-  async function endGame() {
+  function endGame() {
     clearInterval(gameInterval);
     clearInterval(moveInterval);
     buttons.style.display = "none";
     gameArea.style.display = "none";
     gameOverScreen.style.display = "flex";
-
-    const name = player.getAttribute("data-name") || "İsimsiz";
-    await addDoc(collection(db, "scores"), { name, score });
-
+    saveScore();
     showHighScores();
   }
 
-  async function showHighScores() {
-    const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
-    const querySnapshot = await getDocs(q);
+  function saveScore() {
+    const name = player.getAttribute("data-name") || "İsimsiz";
+    let highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
+    highscores.push({ name, score });
+    highscores.sort((a, b) => b.score - a.score);
+    highscores = highscores.slice(0, 10);
+    localStorage.setItem("highscores", JSON.stringify(highscores));
+  }
+
+  function showHighScores() {
+    const highscores = JSON.parse(localStorage.getItem("highscores") || "[]");
     scoreList.innerHTML = "";
-    let index = 1;
-    querySnapshot.forEach((doc) => {
-      const entry = doc.data();
+    highscores.forEach((entry, index) => {
       const li = document.createElement("li");
-      li.textContent = `${index}. ${entry.name} - ${entry.score}`;
+      li.textContent = `${index + 1}. ${entry.name} - ${entry.score}`;
       scoreList.appendChild(li);
-      index++;
     });
   }
 
   function restartGame() {
-    location.reload();
+    location.reload(); // Sayfayı yeniden yükleyip ana menüye döner
   }
+
+  showHighScores();
 
   // Dokunmatik ve fare kontrolleri
   document.getElementById("leftBtn").addEventListener("touchstart", () => moveLeft = true);
@@ -247,7 +263,7 @@
   document.getElementById("rightBtn").addEventListener("mousedown", () => moveRight = true);
   document.getElementById("rightBtn").addEventListener("mouseup", () => moveRight = false);
 
-  // Klavye yön tuşları
+  // Klavye yön tuşları (⬅️ ➡️) ile kontrol
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") moveLeft = true;
     if (e.key === "ArrowRight") moveRight = true;
@@ -257,8 +273,6 @@
     if (e.key === "ArrowLeft") moveLeft = false;
     if (e.key === "ArrowRight") moveRight = false;
   });
-
-  showHighScores(); // sayfa yüklenince skorları göster
 </script>
 
 </body>
