@@ -153,9 +153,8 @@
   let moveRight = false;
   let gameInterval;
   let moveInterval;
-  let sphereIntervalTime = 800;
-  let score = 0;
   let totalGold = parseInt(localStorage.getItem("altinToplam")) || 0;
+  let score = 0;
   goldCountDisplay.textContent = "Altın: " + totalGold;
 
   const seciliRenk = localStorage.getItem("seciliTop") || "red";
@@ -176,12 +175,7 @@
     score = 0;
     levelDisplay.textContent = "Seviye: 1";
     moveInterval = setInterval(updatePlayerPosition, 10);
-    startGameLoop();
-  }
-
-  function startGameLoop() {
-    clearInterval(gameInterval);
-    gameInterval = setInterval(createSphere, sphereIntervalTime);
+    gameInterval = setInterval(createSphere, 800);
   }
 
   function updateLevel() {
@@ -189,15 +183,7 @@
     if (score >= 60) level = 4;
     else if (score >= 40) level = 3;
     else if (score >= 20) level = 2;
-
     levelDisplay.textContent = "Seviye: " + level;
-
-    // Her seviyede zorluk artışı (küre düşme sıklığı artar)
-    const newInterval = 800 - (level - 1) * 150;
-    if (newInterval !== sphereIntervalTime) {
-      sphereIntervalTime = newInterval;
-      startGameLoop();
-    }
   }
 
   function updatePlayerPosition() {
